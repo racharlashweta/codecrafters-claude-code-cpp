@@ -5,7 +5,7 @@ A high-performance CLI tool built in C++ that transforms an LLM into an autonomo
 ## 核心 Features
 - **Recursive Agent Loop:** Implements a stateful "Thought-Action-Observation" loop, allowing the LLM to self-correct and perform multi-step tasks.
 - **System Tool Integration:** - **Read/Write:** Direct filesystem access via `std::fstream`.
-  - **Bash Execution:** Real-time shell command execution using `popen` with combined `stdout/stderr` capture.
+- **Bash Execution:** Real-time shell command execution using `popen` with combined `stdout/stderr` capture.
 - **OpenAI-Compatible Architecture:** Built to interface with OpenRouter/Claude-4.5 headers using the `cpr` HTTP library and `nlohmann-json`.
 - **Resource Optimized:** Engineered to run efficiently on legacy hardware (Tested on 2017 MacBook Air, 8GB RAM).
 
