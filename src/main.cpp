@@ -63,7 +63,7 @@ int main(int argc, char* argv[]) {
     std::cerr << "Logs from your program will appear here!" << std::endl;
 
     // TODO: Uncomment the line below to pass the first stage
-    // std::cout << result["choices"][0]["message"]["content"].get<std::string>();
+    std::cout << result["choices"][0]["message"]["content"].get<std::string>();
 
     return 0;
 }
