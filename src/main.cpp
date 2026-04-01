@@ -4,10 +4,31 @@
 #include <fstream>
 #include <sstream>
 #include <vector>
+#include <cstdio>
+#include <memory>
+#include <stdexcept>
 #include <nlohmann/json.hpp>
 #include <cpr/cpr.h>
 
 using json = nlohmann::json;
+
+// Helper to execute bash commands and capture output
+std::string execute_bash(const std::string& command) {
+    std::string result;
+    // Redirect stderr to stdout so we capture error messages too
+    std::string full_command = command + " 2>&1";
+    
+    std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(full_command.c_str(), "r"), pclose);
+    if (!pipe) {
+        return "Error: Failed to start bash command.";
+    }
+    
+    char buffer[128];
+    while (fgets(buffer, sizeof(buffer), pipe.get()) != nullptr) {
+        result += buffer;
+    }
+    return result;
+}
 
 // Helper to read file contents
 std::string read_file_content(const std::string& file_path) {
@@ -18,9 +39,9 @@ std::string read_file_content(const std::string& file_path) {
     return buffer.str();
 }
 
-// Helper to write file contents (Stage #OZ7)
+// Helper to write file contents
 std::string write_file_content(const std::string& file_path, const std::string& content) {
-    std::ofstream file(file_path, std::ios::trunc); // Overwrite if exists
+    std::ofstream file(file_path, std::ios::trunc);
     if (!file.is_open()) return "Error: Could not write to file.";
     file << content;
     return "Successfully wrote to " + file_path;
@@ -39,37 +60,11 @@ int main(int argc, char* argv[]) {
 
     json messages = json::array({{{"role", "user"}, {"content", user_prompt}}});
 
-    // Advertise BOTH Read and Write tools
+    // Advertise Read, Write, and BASH tools
     json tools_spec = json::array({
-        {
-            {"type", "function"},
-            {"function", {
-                {"name", "Read"},
-                {"description", "Read and return the contents of a file"},
-                {"parameters", {
-                    {"type", "object"},
-                    {"properties", {
-                        {"file_path", {{"type", "string"}, {"description", "The path to the file to read"}}}
-                    }},
-                    {"required", json::array({"file_path"})}
-                }}
-            }}
-        },
-        {
-            {"type", "function"},
-            {"function", {
-                {"name", "Write"},
-                {"description", "Write content to a file"},
-                {"parameters", {
-                    {"type", "object"},
-                    {"properties", {
-                        {"file_path", {{"type", "string"}, {"description", "The path of the file to write to"}}},
-                        {"content", {{"type", "string"}, {"description", "The content to write to the file"}}}
-                    }},
-                    {"required", json::array({"file_path", "content"})}
-                }}
-            }}
-        }
+        {{"type", "function"}, {"function", {{"name", "Read"}, {"description", "Read a file"}, {"parameters", {{"type", "object"}, {"properties", {{"file_path", {{"type", "string"}}}}}, {"required", json::array({"file_path"})}}}}}},
+        {{"type", "function"}, {"function", {{"name", "Write"}, {"description", "Write to a file"}, {"parameters", {{"type", "object"}, {"properties", {{"file_path", {{"type", "string"}}}, {"content", {{"type", "string"}}}}}, {"required", json::array({"file_path", "content"})}}}}}},
+        {{"type", "function"}, {"function", {{"name", "Bash"}, {"description", "Execute a shell command"}, {"parameters", {{"type", "object"}, {"properties", {{"command", {{"type", "string"}}}}}, {"required", json::array({"command"})}}}}}}
     });
 
     while (true) {
@@ -102,6 +97,8 @@ int main(int argc, char* argv[]) {
                     tool_result = read_file_content(args["file_path"]);
                 } else if (function_name == "Write") {
                     tool_result = write_file_content(args["file_path"], args["content"]);
+                } else if (function_name == "Bash") {
+                    tool_result = execute_bash(args["command"]);
                 }
 
                 messages.push_back({
