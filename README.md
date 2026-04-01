@@ -1,34 +1,31 @@
-[![progress-banner](https://backend.codecrafters.io/progress/claude-code/dbf27359-a3f8-4c7d-b905-e8da70789a9c)](https://app.codecrafters.io/users/codecrafters-bot?r=2qF)
+# C++ Autonomous AI Coding Agent (Claude-Code Clone)
 
-This is a starting point for C++ solutions to the
-["Build Your own Claude Code" Challenge](https://codecrafters.io/challenges/claude-code).
+A high-performance CLI tool built in C++ that transforms an LLM into an autonomous coding assistant capable of managing a local filesystem and executing shell commands.
 
-Claude Code is an AI coding assistant that uses Large Language Models (LLMs) to
-understand code and perform actions through tool calls. In this challenge,
-you'll build your own Claude Code from scratch by implementing an LLM-powered
-coding assistant.
+## 核心 Features
+- **Recursive Agent Loop:** Implements a stateful "Thought-Action-Observation" loop, allowing the LLM to self-correct and perform multi-step tasks.
+- **System Tool Integration:** - **Read/Write:** Direct filesystem access via `std::fstream`.
+  - **Bash Execution:** Real-time shell command execution using `popen` with combined `stdout/stderr` capture.
+- **OpenAI-Compatible Architecture:** Built to interface with OpenRouter/Claude-4.5 headers using the `cpr` HTTP library and `nlohmann-json`.
+- **Resource Optimized:** Engineered to run efficiently on legacy hardware (Tested on 2017 MacBook Air, 8GB RAM).
 
-Along the way you'll learn about HTTP RESTful APIs, OpenAI-compatible tool
-calling, agent loop, and how to integrate multiple tools into an AI assistant.
+## Technical Stack
+- **Language:** C++20
+- **Build System:** CMake & vcpkg
+- **Libraries:** `cpr` (Network), `nlohmann-json` (Serialization), `OpenSSL` (Security)
 
-**Note**: If you're viewing this repo on GitHub, head over to
-[codecrafters.io](https://codecrafters.io) to try the challenge.
+## How It Works
+The agent doesn't just "chat"; it uses a **Tool-Calling Interface**. When a user provides a high-level goal (e.g., "Fix the bugs in main.cpp"), the agent:
+1. **Reads** the source code.
+2. **Analyzes** the logic internally.
+3. **Writes** the corrected code to the file.
+4. **Executes** a Bash command to verify the build.
 
-# Passing the first stage
+## Installation & Usage
+```bash
+# Clone and build
+mkdir build && cd build
+cmake .. && make
 
-The entry point for your `claude-code` implementation is in `src/main.cpp`.
-Study and uncomment the relevant code, and submit to pass the first stage:
-
-```sh
-codecrafters submit
-```
-
-# Stage 2 & beyond
-
-Note: This section is for stages 2 and beyond.
-
-1. Ensure you have `cmake` installed locally.
-2. Run `./your_program.sh` to run your program, which is implemented in
-   `src/main.cpp`.
-3. Run `codecrafters submit` to submit your solution to CodeCrafters. Test
-   output will be streamed to your terminal.
+# Run a task
+./claude-code -p "Create a simple C++ hello world file and compile it using g++"
